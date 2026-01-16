@@ -16,7 +16,7 @@ from xgboost import XGBRegressor
 from src.exception import CustomException
 from src.logger import logging
 from src.utils import save_object
-from src.utils import evalute_models
+from src.utils import evaluate_models
 
 @dataclass
 class ModelTrainerConfig:
@@ -39,45 +39,77 @@ class ModelTrainer:
             )
             
             models = {
-                            "Linear Regression": LinearRegression(),
-                            "Lasso": Lasso(),
-                            "Ridge": Ridge(),
-                            "K-Neighbors Regressor": KNeighborsRegressor(),
-                            "Decision Tree": DecisionTreeRegressor(),
-                            "Random Forest Regressor": RandomForestRegressor(),
-                            "XGBRegressor": XGBRegressor(), 
-                            "CatBoosting Regressor": CatBoostRegressor(verbose=False),
-                            "AdaBoost Regressor": AdaBoostRegressor()
+                        "Decision Tree": DecisionTreeRegressor(),
+                        "Random Forest": RandomForestRegressor(), 
+                        "Gradient Boosting": GradientBoostingRegressor(),
+                        "Linear Regression": LinearRegression(),
+                        
+                          # ✅ fixed
+                          # ✅ added
+                        "XGBRegressor": XGBRegressor(),
+                        "CatBoosting Regressor": CatBoostRegressor(verbose=False),
+                        "AdaBoost Regressor": AdaBoostRegressor(),
+                        "Lasso": Lasso(),
+                        "Ridge": Ridge(),
+                        "K-Neighbors Regressor": KNeighborsRegressor()
                     }
+
+            
+            params = {
+                    "Decision Tree": {
+                        'criterion': ['squared_error', 'friedman_mse']
+                    },
+                    "Random Forest": {
+                        'n_estimators': [64, 128, 256]
+                    },
+                    "Gradient Boosting": {
+                        'learning_rate': [0.01, 0.05, 0.1],
+                        'n_estimators': [64, 128]
+                    },
+                    "Linear Regression": {},
+                    "XGBRegressor": {
+                        'learning_rate': [0.01, 0.1],
+                        'n_estimators': [64, 128]
+                    },
+                    "CatBoosting Regressor": {
+                        'depth': [6, 8],
+                        'learning_rate': [0.01, 0.1],
+                        'iterations': [50, 100]
+                    },
+                    "AdaBoost Regressor": {
+                        'learning_rate': [0.01, 0.1],
+                        'n_estimators': [64, 128]
+                    },
+                    "Lasso": {},
+                    "Ridge": {},
+                    "K-Neighbors Regressor": {}
+                }
+
             
             
-            model_report:dict=evalute_models(x_train=x_train,y_train=y_train,x_test=x_test,y_test=y_test,models=models)
-            
-            
-            
-            #to get best model score from dict
-            best_model_score=max(sorted(model_report.values()))
-            
-            #to get best model name from dict
-            best_model_name=list(model_report.keys())[
-                list(model_report.values()).index(best_model_score)
-            ]
-            
-            best_model=models[best_model_name]
-            
-            if best_model_score<0.60:
+            model_report, best_model = evaluate_models(
+                x_train=x_train,
+                y_train=y_train,
+                x_test=x_test,
+                y_test=y_test,
+                models=models,
+                params=params
+            )
+
+            best_model_score = max(model_report.values())
+
+            if best_model_score < 0.60:
                 raise CustomException("No best model found")
-            logging.info(f"Best found model on both training and testing dataset{best_model_name}")
-            
+
             save_object(
                 file_path=self.model_trainer_config.trained_model_file_path,
                 obj=best_model
             )
-            
-            pridected=best_model.predict(x_test)
-            
-            r2_squre=r2_score(y_test,pridected)
-            return r2_squre
+
+            predicted = best_model.predict(x_test)
+            r2_square = r2_score(y_test, predicted)
+            return r2_square
+
             
             
         except Exception as e:
