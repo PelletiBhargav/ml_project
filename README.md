@@ -75,7 +75,7 @@ mlproject/
 │
 ├── templates/
 │   ├── index.html
-│   └── prediction.html
+│   └── home.html
 │
 ├── app.py
 ├── requirements.txt
