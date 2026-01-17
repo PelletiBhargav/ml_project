@@ -44,8 +44,6 @@ class ModelTrainer:
                         "Gradient Boosting": GradientBoostingRegressor(),
                         "Linear Regression": LinearRegression(),
                         
-                          # ✅ fixed
-                          # ✅ added
                         "XGBRegressor": XGBRegressor(),
                         "CatBoosting Regressor": CatBoostRegressor(verbose=False),
                         "AdaBoost Regressor": AdaBoostRegressor(),
